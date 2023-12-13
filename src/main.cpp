@@ -29,5 +29,44 @@ void setup()
 
 void loop()
 {
-    
+    if (bleGamepad.isConnected())
+    {
+        Serial.println("\nn--- Axes Decimal ---");
+        Serial.print("Axes Min: ");
+        Serial.println(bleGamepadConfig.getAxesMin());
+        Serial.print("Axes Max: ");
+        Serial.println(bleGamepadConfig.getAxesMax());
+        Serial.println("\nn--- Axes Hex ---");
+        Serial.print("Axes Min: ");
+        Serial.println(bleGamepadConfig.getAxesMin(), HEX);
+        Serial.print("Axes Max: ");
+        Serial.println(bleGamepadConfig.getAxesMax(), HEX);        
+
+        bleGamepad.setAxes(0,0,0,0,0,0,0,0);
+        bleGamepad.sendReport();
+
+        for(auto button : BUTTONS)
+        {
+            Serial.printf("Button %i", button);
+            Serial.println();
+
+            bleGamepad.press(button);
+            bleGamepad.sendReport();
+            delay(1000);
+            bleGamepad.release(button);
+            bleGamepad.sendReport();
+            delay(1000);
+        }
+
+        for(int i = 0; i < 32768; i += 256)
+        {
+            bleGamepad.setAxes(i,i,i,i,i,i);
+
+            bleGamepad.sendReport();
+            delay(10);
+        }
+
+        bleGamepad.sendReport();
+        delay(500);
+    }
 }
