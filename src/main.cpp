@@ -5,68 +5,65 @@
 #define numOfButtons 16
 #define numOfHatSwitches 4
 
-const uint8_t BUTTONS[] = {1,2,4,5,7,8,11,12,13,14,15}; 
+const uint8_t A = 1;
+const uint8_t B = 2;
+const uint8_t X = 4;
+const uint8_t Y = 5;
 
-BleGamepad bleGamepad;
-BleGamepadConfiguration bleGamepadConfig;
+const uint8_t LB = 7;
+const uint8_t RB = 8;
+
+const uint8_t BACK = 11;
+const uint8_t START = 12;
+const uint8_t GUIDE = 13;
+
+const uint8_t LS_B = 14;
+const uint8_t RS_B = 15;
+
+const uint8_t BUTTONS[] = {A,B,X,Y,LB,RB,BACK,START,GUIDE,LS_B,RS_B};
+const uint8_t BUTTONS_PINS[] = {23,22,21,19,18,5,4,2,15,13,12};
+
+
+BleGamepad controller;
+BleGamepadConfiguration BleGamepadConfig;
+
 
 void setup()
 {
     Serial.begin(115200);
     Serial.println("Starting BLE work!");
-    bleGamepadConfig.setAutoReport(false);
-    bleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); // CONTROLLER_TYPE_JOYSTICK, CONTROLLER_TYPE_GAMEPAD (DEFAULT), CONTROLLER_TYPE_MULTI_AXIS
-    bleGamepadConfig.setButtonCount(numOfButtons);
-    bleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
-    bleGamepadConfig.setVid(0xe502);
-    bleGamepadConfig.setPid(0xabcd);
-    // Some non-Windows operating systems and web based gamepad testers don't like min axis set below 0, so 0 is set by default
-    //bleGamepadConfig.setAxesMin(0x8001); // -32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-	bleGamepadConfig.setAxesMin(0x0000); // 0 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal
-    bleGamepadConfig.setAxesMax(0x7FFF); // 32767 --> int16_t - 16 bit signed integer - Can be in decimal or hexadecimal 
-    bleGamepad.begin(&bleGamepadConfig); // Simulation controls, special buttons and hats 2/3/4 are disabled by default
+    BleGamepadConfig.setAutoReport(false);
+    BleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); 
+    BleGamepadConfig.setButtonCount(numOfButtons);
+    BleGamepadConfig.setHatSwitchCount(numOfHatSwitches);
+    BleGamepadConfig.setVid(0xe502);
+    BleGamepadConfig.setPid(0xabcd);
+	BleGamepadConfig.setAxesMin(0x0000);
+    BleGamepadConfig.setAxesMax(0x7FFF);
+    controller.begin(&BleGamepadConfig);
+    for (auto pin : BUTTONS_PINS)
+    {
+        pinMode(pin, INPUT);
+    }
 }
 
 void loop()
 {
-    if (bleGamepad.isConnected())
+    if (controller.isConnected())
     {
-        Serial.println("\nn--- Axes Decimal ---");
-        Serial.print("Axes Min: ");
-        Serial.println(bleGamepadConfig.getAxesMin());
-        Serial.print("Axes Max: ");
-        Serial.println(bleGamepadConfig.getAxesMax());
-        Serial.println("\nn--- Axes Hex ---");
-        Serial.print("Axes Min: ");
-        Serial.println(bleGamepadConfig.getAxesMin(), HEX);
-        Serial.print("Axes Max: ");
-        Serial.println(bleGamepadConfig.getAxesMax(), HEX);        
-
-        bleGamepad.setAxes(0,0,0,0,0,0,0,0);
-        bleGamepad.sendReport();
-
-        for(auto button : BUTTONS)
+        for(uint8_t i = 0; i < 11; i++)
         {
-            Serial.printf("Button %i", button);
-            Serial.println();
-
-            bleGamepad.press(button);
-            bleGamepad.sendReport();
-            delay(1000);
-            bleGamepad.release(button);
-            bleGamepad.sendReport();
-            delay(1000);
+            if(digitalRead(BUTTONS_PINS[i]))
+            {
+                controller.press(BUTTONS[i]);
+                Serial.printf("Botao %i pressionado\n", i);
+            }
+            else
+            {
+                controller.release(BUTTONS[i]);
+            }
         }
 
-        for(int i = 0; i < 32768; i += 256)
-        {
-            bleGamepad.setAxes(i,i,i,i,i,i);
-
-            bleGamepad.sendReport();
-            delay(10);
-        }
-
-        bleGamepad.sendReport();
-        delay(500);
+        controller.sendReport();
     }
 }
