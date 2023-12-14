@@ -20,9 +20,16 @@ const uint8_t GUIDE = 13;
 const uint8_t LS_B = 14;
 const uint8_t RS_B = 15;
 
+const uint8_t UP = 1;
+const uint8_t RIGHT = 2;
+const uint8_t DOWN = 4;
+const uint8_t LEFT = 8;
+
 const uint8_t BUTTONS[] = {A,B,X,Y,LB,RB,BACK,START,GUIDE,LS_B,RS_B};
 const uint8_t BUTTONS_PINS[] = {23,22,21,19,18,5,4,2,15,13,12};
 
+const uint8_t HATS[] = {UP,RIGHT,DOWN,LEFT};
+const uint8_t HATS_PINS[] = {14,27,26,25};
 
 BleGamepad controller;
 BleGamepadConfiguration BleGamepadConfig;
@@ -51,6 +58,8 @@ void loop()
 {
     if (controller.isConnected())
     {
+        /*DIGITAL BUTTONS*/
+
         for(uint8_t i = 0; i < 11; i++)
         {
             if(digitalRead(BUTTONS_PINS[i]))
@@ -62,7 +71,49 @@ void loop()
                 controller.release(BUTTONS[i]);
             }
         }
-        
+
+        /*HATS BUTTONS*/
+
+        uint8_t total = 0;
+
+        for(uint8_t i = 0; i < 4; i++)
+        {
+            if(digitalRead(HATS_PINS[i]))
+            {
+                total += HATS[i];
+            }
+        }
+
+        switch (total)
+        {
+        case UP:
+            controller.setHat4(1);
+            break;
+        case UP + RIGHT:
+            controller.setHat4(2);
+            break;
+        case RIGHT:
+            controller.setHat4(3);
+            break;
+        case RIGHT + DOWN:
+            controller.setHat4(4);
+            break;
+        case DOWN:
+            controller.setHat4(5);
+            break;
+        case DOWN + LEFT:
+            controller.setHat4(6);
+            break;
+        case LEFT:
+            controller.setHat4(7);
+            break;
+        case LEFT + UP:
+            controller.setHat4(8);
+            break;
+        default:
+            controller.setHat4(0);
+            break;
+        }
 
         controller.sendReport();
     }
