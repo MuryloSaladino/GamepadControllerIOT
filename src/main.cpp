@@ -87,24 +87,28 @@ void loop()
         switch (total)
         {
         case UP:
+        case LEFT + UP + RIGHT:
             controller.setHat4(1);
             break;
         case UP + RIGHT:
             controller.setHat4(2);
             break;
         case RIGHT:
+        case UP + RIGHT + DOWN:
             controller.setHat4(3);
             break;
         case RIGHT + DOWN:
             controller.setHat4(4);
             break;
         case DOWN:
+        case LEFT + DOWN + RIGHT:
             controller.setHat4(5);
             break;
         case DOWN + LEFT:
             controller.setHat4(6);
             break;
         case LEFT:
+        case UP + LEFT + DOWN:
             controller.setHat4(7);
             break;
         case LEFT + UP:
