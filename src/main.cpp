@@ -56,13 +56,13 @@ void loop()
             if(digitalRead(BUTTONS_PINS[i]))
             {
                 controller.press(BUTTONS[i]);
-                Serial.printf("Botao %i pressionado\n", i);
             }
             else
             {
                 controller.release(BUTTONS[i]);
             }
         }
+        
 
         controller.sendReport();
     }
