@@ -59,8 +59,7 @@ void loop()
     if (controller.isConnected())
     {
         /*DIGITAL BUTTONS*/
-
-        for(uint8_t i = 0; i < 11; i++)
+        for(uint8_t i = 0; i < 9; i++)
         {
             if(digitalRead(BUTTONS_PINS[i]))
             {
@@ -72,16 +71,17 @@ void loop()
             }
         }
 
-        /*HATS BUTTONS*/
+        // inverted check for joystick button
+        digitalRead(BUTTONS_PINS[10]) ? controller.release(BUTTONS[10]) : controller.press(BUTTONS[10]);
+        digitalRead(BUTTONS_PINS[11]) ? controller.release(BUTTONS[11]) : controller.press(BUTTONS[11]);
 
+        /*HATS BUTTONS*/
         uint8_t total = 0;
 
         for(uint8_t i = 0; i < 4; i++)
         {
             if(digitalRead(HATS_PINS[i]))
-            {
                 total += HATS[i];
-            }
         }
 
         switch (total)
