@@ -5,40 +5,32 @@
 #define numOfButtons 16
 #define numOfHatSwitches 4
 
-const uint8_t A = 1;
-const uint8_t B = 2;
-const uint8_t X = 4;
-const uint8_t Y = 5;
-
-const uint8_t LB = 7;
-const uint8_t RB = 8;
-
-const uint8_t BACK = 11;
-const uint8_t START = 12;
-const uint8_t GUIDE = 13;
-
-const uint8_t LS_B = 14;
-const uint8_t RS_B = 15;
-
 const uint8_t UP = 1;
 const uint8_t RIGHT = 2;
 const uint8_t DOWN = 4;
 const uint8_t LEFT = 8;
 
-const uint8_t BUTTONS[] = {A,B,X,Y,LB,RB,BACK,START,GUIDE,LS_B,RS_B};
-const uint8_t BUTTONS_PINS[] = {23,22,21,19,18,5,4,2,15,13,12};
+// A,B,X,Y,LB,RB,BACK,START,GUIDE,LS_B,RS_B
+const uint8_t BUTTONS[] = {1,2,4,5,7,8,11,12,13,14,15};
+const uint8_t BUTTONS_PINS[] = {23,22,12,3,4,16,19,21,18,17,5};
 
 const uint8_t HATS[] = {UP,RIGHT,DOWN,LEFT};
-const uint8_t HATS_PINS[] = {14,27,26,25};
+const uint8_t HATS_PINS[] = {36,39,32,33};
+
+const uint8_t JOYSTICKS_PINS[] = {27,14,2,15}; 
 
 BleGamepad controller;
 BleGamepadConfiguration BleGamepadConfig;
 
+float getValue(float x)
+{
+    float a = 0.05239583, b = -0.1474024;
+    return x - (a * x + b);
+}
 
 void setup()
 {
     Serial.begin(115200);
-    Serial.println("Starting BLE work!");
     BleGamepadConfig.setAutoReport(false);
     BleGamepadConfig.setControllerType(CONTROLLER_TYPE_GAMEPAD); 
     BleGamepadConfig.setButtonCount(numOfButtons);
@@ -48,7 +40,16 @@ void setup()
 	BleGamepadConfig.setAxesMin(0x0000);
     BleGamepadConfig.setAxesMax(0x7FFF);
     controller.begin(&BleGamepadConfig);
+
     for (auto pin : BUTTONS_PINS)
+    {
+        pinMode(pin, INPUT);
+    }
+    for (auto pin : HATS_PINS)
+    {
+        pinMode(pin, INPUT);
+    }
+    for (auto pin : JOYSTICKS_PINS)
     {
         pinMode(pin, INPUT);
     }
@@ -58,22 +59,15 @@ void loop()
 {
     if (controller.isConnected())
     {
-        /*DIGITAL BUTTONS*/
+        // /*DIGITAL BUTTONS*/
         for(uint8_t i = 0; i < 9; i++)
         {
-            if(digitalRead(BUTTONS_PINS[i]))
-            {
-                controller.press(BUTTONS[i]);
-            }
-            else
-            {
-                controller.release(BUTTONS[i]);
-            }
+            digitalRead(BUTTONS_PINS[i]) ? controller.press(BUTTONS[i]) : controller.release(BUTTONS[i]);
         }
-
         // inverted check for joystick button
         digitalRead(BUTTONS_PINS[10]) ? controller.release(BUTTONS[10]) : controller.press(BUTTONS[10]);
         digitalRead(BUTTONS_PINS[11]) ? controller.release(BUTTONS[11]) : controller.press(BUTTONS[11]);
+
 
         /*HATS BUTTONS*/
         uint8_t total = 0;
@@ -81,9 +75,10 @@ void loop()
         for(uint8_t i = 0; i < 4; i++)
         {
             if(digitalRead(HATS_PINS[i]))
+            {
                 total += HATS[i];
+            }
         }
-
         switch (total)
         {
         case UP:
@@ -118,6 +113,13 @@ void loop()
             controller.setHat4(0);
             break;
         }
+
+
+        /*JOYSTICKS AXIS*/
+        int x = analogRead(JOYSTICKS_PINS[0]);
+        int y = analogRead(JOYSTICKS_PINS[1]);
+
+        controller.setAxes(0, 0, 0, 0, getValue(x*3.3/4095.0), getValue(y*3.3/4095.0));
 
         controller.sendReport();
     }
