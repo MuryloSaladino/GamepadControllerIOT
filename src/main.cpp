@@ -12,12 +12,14 @@ const uint8_t LEFT = 8;
 
 // A,B,X,Y,LB,RB,BACK,START,GUIDE,LS_B,RS_B
 const uint8_t BUTTONS[] = {1,2,4,5,7,8,11,12,13,14,15};
-const uint8_t BUTTONS_PINS[] = {23,22,12,3,4,16,19,21,18,17,5};
+const uint8_t BUTTONS_PINS[] = {23,22,12,3,2,16,19,21,18,17,5};
+
+const uint8_t TRIGGERS[] = {25,26};
 
 const uint8_t HATS[] = {UP,RIGHT,DOWN,LEFT};
 const uint8_t HATS_PINS[] = {36,39,32,33};
 
-const uint8_t JOYSTICKS_PINS[] = {27,14,2,15}; 
+const uint8_t JOYSTICKS_PINS[] = {27,14,4,15};
 
 BleGamepad controller;
 BleGamepadConfiguration BleGamepadConfig;
@@ -43,11 +45,15 @@ void setup()
 
     for (auto pin : BUTTONS_PINS)
     {
-        pinMode(pin, INPUT);
+        pinMode(pin, INPUT_PULLDOWN);
     }
     for (auto pin : HATS_PINS)
     {
-        pinMode(pin, INPUT);
+        pinMode(pin, INPUT_PULLDOWN);
+    }
+    for (auto pin : TRIGGERS)
+    {
+        pinMode(pin, INPUT_PULLDOWN);
     }
     for (auto pin : JOYSTICKS_PINS)
     {
@@ -116,11 +122,17 @@ void loop()
 
 
         /*JOYSTICKS AXIS*/
-        int x = analogRead(JOYSTICKS_PINS[0]);
-        int y = analogRead(JOYSTICKS_PINS[1]);
+        int rx = 32767.0 * getValue(analogRead(JOYSTICKS_PINS[0])*3.3/4095.0) / 3.3;
+        int ry = 32767.0 * getValue(analogRead(JOYSTICKS_PINS[1])*3.3/4095.0) / 3.3;
+        int lx = 32767.0 * getValue(analogRead(JOYSTICKS_PINS[2])*3.3/4095.0) / 3.3;
+        int ly = 32767.0 * getValue(analogRead(JOYSTICKS_PINS[3])*3.3/4095.0) / 3.3;
+        int rt = digitalRead(TRIGGERS[0]) ? 32767 : 0;
+        int lt = digitalRead(TRIGGERS[1]) ? 32767 : 0;
 
-        controller.setAxes(0, 0, 0, 0, getValue(x*3.3/4095.0), getValue(y*3.3/4095.0));
+        controller.setAxes(lx, ly, rt, lt, rx, ry);
 
+
+        /*UPDATE CONTROLLER*/
         controller.sendReport();
     }
 }
